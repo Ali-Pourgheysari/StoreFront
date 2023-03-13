@@ -57,6 +57,7 @@ class OredrItem(models.Model):
 class Address(models.Model):
     city = models.CharField(max_length=255)
     street = models.CharField(max_length=255)
+    zip = models.PositiveBigIntegerField()
     customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
 
 class Cart(models.Model):
