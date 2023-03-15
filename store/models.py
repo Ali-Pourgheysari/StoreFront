@@ -9,6 +9,13 @@ class Collection(models.Model):
     title = models.CharField(max_length=100)
     featured_product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, related_name='+')
 
+    #setting:
+    def __str__(self) -> str:
+        return self.title
+    
+    class Meta:
+        ordering = ['title']
+        
 class Product(models.Model):
     title = models.CharField(max_length=100)
     slug = models.SlugField()
@@ -18,6 +25,13 @@ class Product(models.Model):
     last_update = models.DateTimeField(auto_now=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT)
     promotion = models.ManyToManyField(Promotion)
+
+    #setting:
+    def __str__(self) -> str:
+        return self.title
+    
+    class Meta:
+        ordering = ['title']
 
 class Customer(models.Model):
     MEMBERSHIP_GOLD = 'G'
