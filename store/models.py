@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 
 # Create your models here.
 class Promotion(models.Model):
@@ -19,12 +20,12 @@ class Collection(models.Model):
 class Product(models.Model):
     title = models.CharField(max_length=100)
     slug = models.SlugField()
-    description = models.TextField()
-    unit_price = models.DecimalField(max_digits=6, decimal_places=2)
+    description = models.TextField(null=True, blank=True)
+    unit_price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1)])
     inventory = models.IntegerField()
     last_update = models.DateTimeField(auto_now=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT)
-    promotion = models.ManyToManyField(Promotion)
+    promotion = models.ManyToManyField(Promotion, blank=True)
 
     #setting:
     def __str__(self) -> str:
@@ -49,6 +50,10 @@ class Customer(models.Model):
     birth_date = models.DateField(null=True)
     membership = models.CharField(max_length=1, choices=MEMBERSHIP_CHOICES, default=MEMBERSHIP_BRONZE)
 
+    #setting:
+    def __str__(self) -> str:
+        return self.first_name + self.last_name
+
 class Order(models.Model):
     PAYMENT_STATUS_COMPLETE = 'C'
     PAYMENT_STATUS_PENDING = 'P'
@@ -63,10 +68,10 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
 
 class OrderItem(models.Model):
-    quantity = models.PositiveBigIntegerField()
-    unit_price = models.DecimalField(max_digits=6, decimal_places=2)
-    order = models.ForeignKey(Order, on_delete=models.PROTECT) 
     product = models.ForeignKey(Product, on_delete=models.PROTECT) 
+    unit_price = models.DecimalField(max_digits=6, decimal_places=2)
+    quantity = models.PositiveBigIntegerField()
+    order = models.ForeignKey(Order, on_delete=models.PROTECT) 
 
 class Address(models.Model):
     city = models.CharField(max_length=255)
