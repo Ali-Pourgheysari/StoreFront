@@ -132,6 +132,10 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING': False
+}
+
 # debug toolbar
 import os
 INTERNAL_IPS = ["127.0.0.1"]
