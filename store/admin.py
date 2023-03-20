@@ -59,7 +59,7 @@ class orderAdmin(admin.ModelAdmin):
     list_select_related = ['customer']
 
     @admin.display(ordering='customer')
-    def customer_name(self, order):
+    def customer_name(self, order: models.Order):
         return order.customer.first_name + ' ' + order.customer.last_name
 
 @admin.register(models.Collection)
@@ -69,11 +69,11 @@ class collectionAdmin(admin.ModelAdmin):
     list_per_page = 10
 
     @admin.display(ordering='products_count')
-    def products_count(self, collection):
+    def products_count(self, collection: models.Collection):
         url = reverse('admin:store_product_changelist') + '?' + urlencode({'collection__id': collection.id})
         return format_html(f'<a href="{url}">{collection.products_count}</a>')
     
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
-            products_count = Count('product')
+            products_count = Count('products')
         )
