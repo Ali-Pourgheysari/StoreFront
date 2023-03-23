@@ -3,8 +3,9 @@ from django.db.models import Count
 from django.shortcuts import get_list_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.mixins import CreateModelMixin
 from django_filters.rest_framework import DjangoFilterBackend
 
 from store import serializers
@@ -23,6 +24,7 @@ class ProductViewSet(ModelViewSet):
     search_fields = ['title', 'description']
     ordering_fields = ['unit_price', 'last_update']
     pagination_class = pagination.DefaultPagination
+    
 
     def destroy(self, request, *args, **kwargs):
         if models.OrderItem.objects.filter(product_id = kwargs['pk']).count() > 0:
@@ -46,3 +48,7 @@ class ReviewViewSet(ModelViewSet):
     
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_pk']}
+    
+class CartViewSet(CreateModelMixin, GenericViewSet):
+    queryset = models.Cart.objects.all()
+    serializer_class = serializers.CartSerializer
