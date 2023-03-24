@@ -1,5 +1,5 @@
 
-from django.db.models import Count
+from django.db.models import Count, Sum, DecimalField
 from django.shortcuts import get_list_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -48,7 +48,7 @@ class ReviewViewSet(ModelViewSet):
     
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_pk']}
-    
-class CartViewSet(CreateModelMixin, GenericViewSet):
-    queryset = models.Cart.objects.all()
+# CreateModelMixin, GenericViewSet
+class CartViewSet(ModelViewSet):
+    queryset = models.Cart.objects.prefetch_related('items__product').all()
     serializer_class = serializers.CartSerializer
