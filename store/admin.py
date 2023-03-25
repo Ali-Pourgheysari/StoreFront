@@ -40,9 +40,12 @@ class productAdmin(admin.ModelAdmin):
 
 @admin.register(models.Customer)
 class customerAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['user']
     list_display = ['first_name', 'last_name', 'membership']
     list_editable = ['membership']
     list_per_page = 10
+    list_select_related = ['user']
+    ordering = ['user__first_name', 'user__last_name']
     search_fields = ['first_name__istartswith', 'last_name__istartswith']
 
 class orderItemInline(admin.TabularInline):
@@ -60,7 +63,7 @@ class orderAdmin(admin.ModelAdmin):
 
     @admin.display(ordering='customer')
     def customer_name(self, order: models.Order):
-        return order.customer.first_name + ' ' + order.customer.last_name
+        return order.customer.user.first_name + ' ' + order.customer.user.last_name
 
 @admin.register(models.Collection)
 class collectionAdmin(admin.ModelAdmin):
