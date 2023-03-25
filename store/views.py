@@ -1,11 +1,11 @@
 
-from django.db.models import Count, Sum, DecimalField
+from django.db.models import Count
 from django.shortcuts import get_list_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
 from django_filters.rest_framework import DjangoFilterBackend
 
 from store import serializers
@@ -48,7 +48,22 @@ class ReviewViewSet(ModelViewSet):
     
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_pk']}
-# CreateModelMixin, GenericViewSet
-class CartViewSet(ModelViewSet):
+
+class CartViewSet(CreateModelMixin,
+                  GenericViewSet,
+                  RetrieveModelMixin,
+                  DestroyModelMixin):
     queryset = models.Cart.objects.prefetch_related('items__product').all()
     serializer_class = serializers.CartSerializer
+
+class CartItemsViewSet(ModelViewSet):
+    def get_queryset(self):
+        return models.CartItem.objects.filter(cart_id=self.kwargs['cart_pk']).select_related('product')
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.AddCartSerializer
+        return serializers.CartItemSerializer
+    
+    def get_serializer_context(self):
+        return {'cart_id': self.kwargs['cart_pk']}
