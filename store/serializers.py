@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from django.db import transaction
 from . import models
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -80,3 +80,46 @@ class CartSerializer(serializers.ModelSerializer):
         model = models.Cart
         fields = ['id', 'items', 'total_price']
 
+class CustomerSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = models.Customer
+        fields = ['id', 'user_id', 'phone', 'birth_date', 'membership']
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = SimpleProductSerializer()
+
+    class Meta:
+        fields = ['id', 'product', 'unit_price', 'quantity']
+        model = models.OrderItem
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+    
+    class Meta:
+        model = models.Order
+        fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
+
+class CreateOrderSerializer(serializers.Serializer):
+    cart_id = serializers.UUIDField()
+
+    def save(self, **kwargs):
+        with transaction.atomic():
+            cart_id = self.validated_data['cart_id']
+            customer, created = models.Customer.objects.get_or_create(user=self.context['user'])
+            order = models.Order.objects.create(customer=customer)
+
+            cart_items = models.CartItem.objects.filter(cart_id=cart_id)
+
+            order_items = [
+                models.OrderItem(
+                    product=item.product,
+                    unit_price=item.product.unit_price,
+                    quantity=item.quantity,
+                    order=order
+                ) for item in cart_items
+            ]
+
+            models.OrderItem.objects.bulk_create(order_items)
+            models.Cart.objects.filter(pk=cart_id).delete()

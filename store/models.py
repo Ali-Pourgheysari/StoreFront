@@ -42,7 +42,7 @@ class Customer(models.Model):
     MEMBERSHIP_SILVER = 'S'
     MEMBERSHIP_BRONZE = 'B'
     MEMBERSHIP_CHOICES = [
-        (MEMBERSHIP_GOLD, 'Gole'),
+        (MEMBERSHIP_GOLD, 'Gold'),
         (MEMBERSHIP_SILVER, 'Silver'),
         (MEMBERSHIP_BRONZE, 'Bronze'),
     ]
@@ -74,20 +74,16 @@ class Order(models.Model):
         (PAYMENT_STATUS_PENDING, 'Pending'),
         (PAYMENT_STATUS_FAILED, 'Failed'),
     ]
-    placed_At = models.DateTimeField(auto_now_add=True)
+    placed_at = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
 
-    class Meta:
-        permissions = [
-            ('cancel_order', 'Can cancel order ')
-        ]
 
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orderitems') 
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
     quantity = models.PositiveBigIntegerField()
-    order = models.ForeignKey(Order, on_delete=models.PROTECT) 
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='items') 
 
 class Address(models.Model):
     city = models.CharField(max_length=255)
