@@ -3,7 +3,7 @@ from django.db.models import Count
 from django.shortcuts import get_list_or_404
 from requests import Request
 from rest_framework.decorators import api_view
-from rest_framework. permissions import DjangoModelPermissions, IsAuthenticated
+from rest_framework. permissions import DjangoModelPermissions, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -93,15 +93,27 @@ class CustomerViewSet(ModelViewSet):
             return Response(serializer.data)
 
 class OrderViewSet(ModelViewSet):
+    http_method_names = ['get', 'patch', 'delete', 'head', 'options']
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'DELETE']:
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
+
+    def create(self, request: Request, *args, **kwargs):
+        serializer = serializers.CreateOrderSerializer(data=request.data, context={'user': self.request.user})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        serializer = serializers.OrderSerializer(order)
+        return Response(serializer.data)
+    
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return serializers.CreateOrderSerializer
+        elif self.request.method == 'PATCH':
+            return serializers.UpdateOrderSerializer
         return serializers.OrderSerializer
-
-    def get_serializer_context(self):
-        return {'user': self.request.user}
     
     def get_queryset(self):
         user = self.request.user

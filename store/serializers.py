@@ -101,9 +101,21 @@ class OrderSerializer(serializers.ModelSerializer):
         model = models.Order
         fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
 
+class UpdateOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Order
+        fields = ['payment_status']
+        
 class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
+    def validat_cart_id(self, cart_id):
+        if not models.Cart.objects.filter(pk=cart_id).exists():
+            raise serializers.ValidationError('No cart with the given ID was found.')
+        if models.CartItem.objects.filter(pk=cart_id).count() == 0:
+            raise serializers.ValidationError('there is no item in the cart.')
+        return cart_id
+    
     def save(self, **kwargs):
         with transaction.atomic():
             cart_id = self.validated_data['cart_id']
@@ -123,3 +135,5 @@ class CreateOrderSerializer(serializers.Serializer):
 
             models.OrderItem.objects.bulk_create(order_items)
             models.Cart.objects.filter(pk=cart_id).delete()
+
+            return order
